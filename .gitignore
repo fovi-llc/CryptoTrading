@@ -4,6 +4,7 @@ __pycache__/
 archives/
 *.pickle
 *.h5
+*.keras
 paper/
 processed_data/
 raw_data_4_hour/
