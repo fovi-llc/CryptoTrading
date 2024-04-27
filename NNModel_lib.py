@@ -5,7 +5,7 @@ from keras.layers import Dense
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.regularizers import l2
 from sklearn.preprocessing import LabelEncoder
-from keras.utils import np_utils
+from keras import utils
 from sklearn.dummy import DummyClassifier
 
 
@@ -28,15 +28,16 @@ class NNModel:
         encoder = LabelEncoder()
         encoder.fit(y)
         encoded_Y = encoder.transform(y)
-        dummy_y = np_utils.to_categorical(encoded_Y)
+        dummy_y = utils.to_categorical(encoded_Y)
         checkpoint = ModelCheckpoint(
-            'model_best_weights.h5',
+            'model_best.weights.h5',
             monitor='loss',
             verbose=4,
             save_best_only=True,
-            mode='min'
+            mode='min',
+            save_weights_only=True
         )
-        self.model.fit(train_data, dummy_y, batch_size=64, epochs=self.epochs, use_multiprocessing=True, verbose=1,
+        self.model.fit(train_data, dummy_y, batch_size=64, epochs=self.epochs, verbose=1,
                        callbacks=[checkpoint])
         return True
 
