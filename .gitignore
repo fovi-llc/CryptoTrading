@@ -1,0 +1,11 @@
+.DS_Store
+.vscode/
+__pycache__/
+archives/
+*.pickle
+*.h5
+paper/
+processed_data/
+raw_data_4_hour/
+rep_charts_paper/
+reports/
