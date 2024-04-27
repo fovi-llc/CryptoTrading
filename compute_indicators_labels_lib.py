@@ -1,10 +1,6 @@
-from operator import concat
 import os
 import pandas as pd
 from technical_analysis_lib import TecnicalAnalysis
-import datetime
-import random
-from config import RUN as run_conf
 from multiprocessing import pool
 
 
@@ -29,7 +25,6 @@ def preprocess_filename(params):
             labels["lab_%d_%d" % (bw, fw)] = TecnicalAnalysis.assign_labels(data, bw, fw, RUN['alpha'], RUN['beta'])
 
     return data, labels
-
 
 
 def preprocess(RUN):
@@ -59,7 +54,6 @@ def preprocess(RUN):
     final_ds = pd.concat([concat_data, concat_labels], axis=1)
     final_ds = final_ds.dropna()
     final_ds.to_csv("processed_data/%strain_test_data.csv" % RUN['folder'].replace('/', '_'), index=False)
-
 
 
 def get_dataset(RUN):
@@ -92,4 +86,3 @@ def get_dataset(RUN):
     ds['label'] = labels
     
     return ds
-
