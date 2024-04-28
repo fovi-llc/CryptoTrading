@@ -41,7 +41,7 @@ for period in ("short", "long"):
         
         for c in run_conf['off_label_set']:
             res = backtest_single_coin(run_conf, "%s.csv" % c, 
-                                       mdl_name="model_final_%d_%d.h5" % (run_conf['b_window'], run_conf['f_window']), 
+                                       mdl_name="model_final_%d_%d.keras" % (run_conf['b_window'], run_conf['f_window']), 
                                        suffix=period)
             
             rep = ["NN", period, bf[0], bf[1], c, res['nn'][0], res['nn'][1], res['nn'][2], res['nn'][3], res['nn'][4]]
