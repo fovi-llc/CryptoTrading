@@ -161,9 +161,7 @@ def calc_cum_ret_s1(x, stop_loss, fee):
                          (price_start * (1 + fee))) /
                         (price_start * (1 + fee)))
     
-
     return history, capital, num_ops, min_drowdown, max_gain, good_ops
-
 
 
 def calc_cum_ret_s2(x, stop_loss, fee):
@@ -219,7 +217,6 @@ def calc_cum_ret_s2(x, stop_loss, fee):
                     fw_pos = 0
                     continue
         
-
         if row.label == BUY:
             if order_pending:
                 fw_pos += 1
@@ -277,8 +274,7 @@ def calc_cum_ret_s2(x, stop_loss, fee):
     return history, capital, num_ops, min_drawdown, max_gain, good_ops
 
 
-
-def backtest_single_coin(RUN, filename, mdl_name="model.h5", suffix=""):
+def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
     """
     Backtest a coin whose timeseries is contained in filename.
     It uses last model trained.
@@ -301,7 +297,6 @@ def backtest_single_coin(RUN, filename, mdl_name="model.h5", suffix=""):
     X, y = data1.iloc[:, :-1], data1.iloc[:, -1]
     Xs = nr.transform(X)  # used for dummy classifier
     X_train, X_test, y_train, y_test = train_test_split(Xs, y, test_size=0.3, stratify=y)  # , random_state=RUN['seed'])
-    
     
     try:
         data = pd.read_csv(f"{RUN['folder']}{filename}")
@@ -401,7 +396,6 @@ def backtest_single_coin(RUN, filename, mdl_name="model.h5", suffix=""):
         traceback.print_exc(file=sys.stdout)
         print("-" * 60)
 
-    
 
 def backtest_all_coins(RUN):
     data1 = compute_indicators_labels_lib.get_dataset(RUN)
@@ -416,6 +410,7 @@ def backtest_all_coins(RUN):
     X_train, X_test, y_train, y_test = train_test_split(Xs, y, test_size=0.3, stratify=y)  # , random_state=RUN['seed'])
 
     filenames = os.listdir(RUN['folder'])
+    # print(f"{filenames=}")
     rets_list = []
 
     start = ""
@@ -442,12 +437,14 @@ def backtest_all_coins(RUN):
             data.dropna(inplace=True)
             data_pred = data.copy()
             data_pred.drop(columns=['Open', 'High', 'Low', 'Close', 'Volume', "Asset_name"], inplace=True)
+            # print(f"{data_pred.info()=}")
+            # print(f"{data_pred.head()=}")
             if len(data_pred.index) == 0:
                 continue
             Xs = nr.transform(data_pred)
             model = NNModel(Xs.shape[1], 3)
             model.dummy_train(X_train, y_train)
-            model.load('model.h5')
+            model.load('model.keras')
             labels = model.predict(Xs)
             data['label'] = labels
             hist_nn, cap_nn, num_op_nn, min_drawdown_nn, max_gain_nn, g_ops_nn = calc_cum_ret_s1(data, RUN['stop_loss'],
@@ -481,11 +478,9 @@ def backtest_all_coins(RUN):
         else:
             break
 
-
     res_df.to_excel(f_save, float_format="%.3f")
 
     return res_df
-
 
 
 if __name__ == "__main__":

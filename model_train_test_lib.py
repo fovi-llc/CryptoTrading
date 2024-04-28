@@ -17,7 +17,7 @@ from tensorflow import random as tf_rand
 from imbalanced_lib import get_sampler
 
 
-def train_test(RUN, save_to="model.h5"):
+def train_test(RUN, save_to="model.keras"):
     random.seed(RUN['seed'])
     seed(RUN['seed'] + 254923845)
     tf_rand.set_seed(RUN['seed'] + 984573)
