@@ -21,7 +21,7 @@ run1 = {
     
     'back_test_start': Timestamp("2022-01-1"),
     'back_test_end': Timestamp("2022-03-31"),
-    'suffix':  'ncr',
+    'suffix': 'ncr',
 
     'stop_loss': 0.05,
     
