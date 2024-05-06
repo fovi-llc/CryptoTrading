@@ -39,7 +39,7 @@ X_train, y = data.iloc[:, :-1], data.iloc[:, -1]
 
 print(len(X))
 model = NNModel(X_train.shape[1], len(y.unique()))
-model.load("model_final_%d_%d.keras" % (run_conf['b_window'], run_conf['f_window']))
+model.load("model_final_%d_%d.h5" % (run_conf['b_window'], run_conf['f_window']))
 
 explainer = shap.Explainer(model.predict, masker=X_train, algorithm='permutation', feature_names=data.columns)
 ex = explainer(X_train)
