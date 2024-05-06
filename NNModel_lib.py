@@ -1,34 +1,26 @@
 import numpy as np
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, LeakyReLU, Input
-from keras.callbacks import ModelCheckpoint
+from keras.layers import Dense
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.regularizers import l2
 from sklearn.preprocessing import LabelEncoder
-from keras import utils
+from keras.utils import np_utils
 from sklearn.dummy import DummyClassifier
 
 
 class NNModel:
 
-    def __init__(self, in_dim, n_classes, loss="categorical_crossentropy", epochs=32):
+    def __init__(self, in_dim, n_classes, loss='categorical_crossentropy', epochs=32):
         self.dummy_clf = DummyClassifier(strategy="stratified", random_state=2987)
-        # Change from using keras.layers.LeakyReLU as activation function to layer to avoid serialization error:
-        # https://stackoverflow.com/questions/67131893/unable-to-load-model-due-to-unknown-activation-function-leakyrelu
-        model = Sequential(
-            [
-                Input(shape=(in_dim,)),
-                Dense(128),
-                LeakyReLU(negative_slope=0.01),
-                Dense(64),
-                LeakyReLU(negative_slope=0.01),
-                Dense(32),
-                LeakyReLU(negative_slope=0.01),
-                Dense(n_classes, activation="softmax"),
-            ]
-        )
-        model.compile(
-            optimizer="adam", loss=[loss], metrics=[keras.metrics.CategoricalAccuracy()]
-        )
+        model = Sequential()
+        model.add(Dense(128, activation=keras.layers.LeakyReLU(alpha=0.01), input_dim=in_dim))
+        model.add(Dense(64, activation=keras.layers.LeakyReLU(alpha=0.01)))
+        model.add(Dense(32, activation=keras.layers.LeakyReLU(alpha=0.01)))
+        model.add(Dense(n_classes, activation='softmax'))
+        model.compile(optimizer='adam',
+                      loss=[loss],
+                      metrics=[keras.metrics.CategoricalAccuracy()])
         self.model = model
         self.epochs = epochs
 
@@ -36,22 +28,16 @@ class NNModel:
         encoder = LabelEncoder()
         encoder.fit(y)
         encoded_Y = encoder.transform(y)
-        dummy_y = utils.to_categorical(encoded_Y)
+        dummy_y = np_utils.to_categorical(encoded_Y)
         checkpoint = ModelCheckpoint(
-            "best_model.keras",
-            monitor="loss",
+            'model_best_weights.h5',
+            monitor='loss',
             verbose=4,
             save_best_only=True,
-            mode="min",
+            mode='min'
         )
-        self.model.fit(
-            train_data,
-            dummy_y,
-            batch_size=64,
-            epochs=self.epochs,
-            verbose=1,
-            callbacks=[checkpoint],
-        )
+        self.model.fit(train_data, dummy_y, batch_size=64, epochs=self.epochs, use_multiprocessing=True, verbose=1,
+                       callbacks=[checkpoint])
         return True
 
     def predict(self, pred_data):
