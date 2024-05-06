@@ -7,8 +7,8 @@ run1 = {
     #'folder' : 'raw_data_1_day/',
 
     'reports': 'reports/',
-    'alpha': 0.038,  # computed in determine_alpha.py
-    'beta': 0.24,  # ignore sample greater than beta in percent of change
+    'alpha': 0.0377,  # computed in determine_alpha.py
+    'beta': 0.1942,  # ignore sample greater than beta in percent of change
     'seed': 353598215,
     'commission fee': 0.001,  # 0.0004,  # 0.001,
 

@@ -25,9 +25,14 @@ run_conf['back_test_end'] = Timestamp("2015-01-01")  # in the past
 top_most = [(2, 2), (2, 1), (4, 2), (5, 2), (3, 2), (5, 1)]
 
 
+
 for bf in top_most:
     run_conf['b_window'] = bf[0]
     run_conf['f_window'] = bf[1]
-    rep_rows, rep_fields = train_test(run_conf, "model_final_%d_%d.keras" % (run_conf['b_window'], run_conf['f_window']))
+    rep_rows, rep_fields = train_test(run_conf, "model_final_%d_%d.h5" % (run_conf['b_window'], run_conf['f_window']))
     df = pd.DataFrame(rep_rows, columns=rep_fields)
     df.to_excel("reports/final_model_%d_%d.xlsx" % (run_conf['b_window'], run_conf['f_window']))
+
+
+
+
