@@ -15,7 +15,6 @@ binance
 shap
 
 # This is a freeze that worked on my M2 MacBook Air with Python 3.11.3 (Apple's distro)
-
 # absl-py==2.1.0
 # astunparse==1.6.3
 # binance==0.3
@@ -32,41 +31,35 @@ shap
 # google-auth==2.29.0
 # google-auth-oauthlib==1.2.0
 # google-pasta==0.2.0
-# grpcio==1.62.2
+# grpcio==1.63.0
 # h5py==3.11.0
 # idna==3.7
 # imbalanced-learn==0.12.2
-# joblib==1.4.0
-# keras==3.3.3
+# joblib==1.4.2
+# keras==2.15.0
 # kiwisolver==1.4.5
 # libclang==18.1.1
 # llvmlite==0.42.0
 # Markdown==3.6
-# markdown-it-py==3.0.0
 # MarkupSafe==2.1.5
 # matplotlib==3.8.4
-# mdurl==0.1.2
 # ml-dtypes==0.3.2
-# namex==0.0.8
 # numba==0.59.1
 # numpy==1.26.4
 # oauthlib==3.2.2
 # openpyxl==3.1.2
 # opt-einsum==3.3.0
-# optree==0.11.0
 # packaging==24.0
 # pandas==2.2.2
 # pillow==10.3.0
 # protobuf==4.25.3
 # pyasn1==0.6.0
 # pyasn1_modules==0.4.0
-# Pygments==2.17.2
 # pyparsing==3.1.2
 # python-dateutil==2.9.0.post0
 # pytz==2024.1
 # requests==2.31.0
 # requests-oauthlib==2.0.0
-# rich==13.7.1
 # rsa==4.9
 # scikit-learn==1.4.2
 # scipy==1.13.0
@@ -74,18 +67,16 @@ shap
 # six==1.16.0
 # slicer==0.0.7
 # TA-Lib==0.4.28
-# tensorboard==2.16.2
+# tensorboard==2.15.2
 # tensorboard-data-server==0.7.2
-# tensorflow==2.16.1
+# tensorflow==2.15.1
 # tensorflow-estimator==2.15.0
-# tensorflow-io-gcs-filesystem==0.36.0
-# tensorflow-macos==2.16.1
-# tensorflow-metal==1.1.0
+# tensorflow-io-gcs-filesystem==0.37.0
 # termcolor==2.4.0
-# threadpoolctl==3.4.0
-# tqdm==4.66.2
+# threadpoolctl==3.5.0
+# tqdm==4.66.4
 # typing_extensions==4.11.0
 # tzdata==2024.1
 # urllib3==2.2.1
-# Werkzeug==3.0.2
+# Werkzeug==3.0.3
 # wrapt==1.14.1
