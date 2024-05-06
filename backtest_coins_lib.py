@@ -1,3 +1,6 @@
+import argparse
+from datetime import datetime
+import json
 import pandas as pd
 import numpy as np
 
@@ -9,9 +12,8 @@ from sklearn.model_selection import train_test_split
 import os
 import traceback
 import sys
-from config import RUN as run_conf
+from config import RUN
 import matplotlib.pyplot as plt
-import datetime as dt
 import matplotlib.dates as mdates
 
 """
@@ -19,8 +21,9 @@ backtest strategy based on coins excluded from training and test set
 
 """
 
+
 def calc_cum_ret_s3(x, stop_loss, fee, f_win):
-    
+
     def correct_labels(labels):
         """
         Correct labels in a way that the one at the start of the forward window must be -1 
@@ -46,7 +49,7 @@ def calc_cum_ret_s3(x, stop_loss, fee, f_win):
         arr[len(labels) - 1] = 0
 
         return arr
-    
+
     x['label'] = correct_labels(x['label'])
     x['CloseP'] = x['Close'].shift(-1 * f_win)
     x['Ret'] = ((x['CloseP'] * (1 - fee)) -
@@ -55,9 +58,14 @@ def calc_cum_ret_s3(x, stop_loss, fee, f_win):
 
     # history, capital, num_ops, min_drowdown, max_gain, good_ops
 
-    return list[x['Ret']], np.prod(x[x['Ret'] != 0]['Ret'].dropna() + 1), len(x[x['label'] == -1]),\
-           np.min(x[x['Ret'] != 0]['Ret'].dropna()), np.max(x[x['Ret'] != 0]['Ret'].dropna()), -1
-
+    return (
+        list[x["Ret"]],
+        np.prod(x[x["Ret"] != 0]["Ret"].dropna() + 1),
+        len(x[x["label"] == -1]),
+        np.min(x[x["Ret"] != 0]["Ret"].dropna()),
+        np.max(x[x["Ret"] != 0]["Ret"].dropna()),
+        -1,
+    )
 
 
 def calc_cum_ret_s1(x, stop_loss, fee):
@@ -164,7 +172,7 @@ def calc_cum_ret_s1(x, stop_loss, fee):
     return history, capital, num_ops, min_drowdown, max_gain, good_ops
 
 
-def calc_cum_ret_s2(x, stop_loss, fee):
+def calc_cum_ret_s2(x, stop_loss, fee, run_conf=RUN):
     """
     compute cumulative return strategy s2.
     close issued BUY order if stop loss hit or if at end of forward window is HOLD or SELL label
@@ -229,7 +237,6 @@ def calc_cum_ret_s2(x, stop_loss, fee):
                 fw_pos = 0
                 continue
 
-
         if row.label == SELL or row.label == HOLD:
             if order_pending:
                 price_end = row.Close
@@ -274,7 +281,7 @@ def calc_cum_ret_s2(x, stop_loss, fee):
     return history, capital, num_ops, min_drawdown, max_gain, good_ops
 
 
-def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
+def backtest_single_coin(filename, run_conf=RUN, mdl_name="model.keras", suffix=""):
     """
     Backtest a coin whose timeseries is contained in filename.
     It uses last model trained.
@@ -287,7 +294,7 @@ def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
     tuple composed by: (final capital, num operaatioins completed, min drowdown, max_gain, positive ops)
     """
 
-    data1 = compute_indicators_labels_lib.get_dataset(RUN)
+    data1 = compute_indicators_labels_lib.get_dataset(run_conf)
     data1.drop(columns=['Open', 'High', 'Low', 'Close', 'Volume', "Asset_name", "Date"], inplace=True)
     data1.replace([np.inf, -np.inf], np.nan, inplace=True)
     data1.dropna(inplace=True)
@@ -299,15 +306,15 @@ def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
     X_train, X_test, y_train, y_test = train_test_split(Xs, y, test_size=0.3, stratify=y)  # , random_state=RUN['seed'])
     
     try:
-        data = pd.read_csv(f"{RUN['folder']}{filename}")
+        data = pd.read_csv(f"{run_conf['folder']}{filename}")
         data['Date'] = pd.to_datetime(data['Date'])
 
         data = TecnicalAnalysis.compute_oscillators(data)
         data = TecnicalAnalysis.find_patterns(data)
         data = TecnicalAnalysis.add_timely_data(data)
 
-        data = data[data['Date'] >= RUN['back_test_start']]
-        data = data[data['Date'] <= RUN['back_test_end']]
+        data = data[data['Date'] >= run_conf['back_test_start']]
+        data = data[data['Date'] <= run_conf['back_test_end']]
         if len(data.index) == 0:
             raise ValueError("Void dataframe")
         
@@ -326,12 +333,11 @@ def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
         model.load(mdl_name)
         labels = model.predict(Xs)
         data['label'] = labels
-        hist_nn, cap_nn, num_op_nn, min_drawdown_nn, max_gain_nn, g_ops_nn = calc_cum_ret_s1(data, RUN['stop_loss'], RUN['commission fee'])
-        
+        hist_nn, cap_nn, num_op_nn, min_drawdown_nn, max_gain_nn, g_ops_nn = calc_cum_ret_s1(data, run_conf['stop_loss'], run_conf['commission fee'])
         
         labels = model.dummy_predict(Xs)
         data['label'] = labels
-        hist_du, cap_du, num_op_du, min_drawdown_du, max_gain_du, g_ops_du = calc_cum_ret_s1(data, RUN['stop_loss'], RUN['commission fee'])
+        hist_du, cap_du, num_op_du, min_drawdown_du, max_gain_du, g_ops_du = calc_cum_ret_s1(data, run_conf['stop_loss'], run_conf['commission fee'])
 
         # hist_du.pop()
 
@@ -360,8 +366,8 @@ def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
         fig = plt.gcf()
         fig.set_size_inches(8, 8)
 
-        f = RUN['f_window']
-        b = RUN['b_window']
+        f = run_conf['f_window']
+        b = run_conf['b_window']
         
         ax = axs[0]
         ax.set_facecolor('#eeeeee')
@@ -384,7 +390,7 @@ def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
         plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
         ax.grid()
 
-        fig.savefig(RUN["reports"] + filename.split('.')[0] + "_b%d_f%d_%s.png" % (b, f, suffix))
+        fig.savefig(run_conf["reports"] + filename.split('.')[0] + "_b%d_f%d_%s.png" % (b, f, suffix))
         plt.show()
         
         return {'du': (cap_du, num_op_du, min_drawdown_du, max_gain_du, g_ops_du),
@@ -397,8 +403,8 @@ def backtest_single_coin(RUN, filename, mdl_name="model.keras", suffix=""):
         print("-" * 60)
 
 
-def backtest_all_coins(RUN):
-    data1 = compute_indicators_labels_lib.get_dataset(RUN)
+def backtest_all_coins(run_conf):
+    data1 = compute_indicators_labels_lib.get_dataset(run_conf)
     data1.drop(columns=['Open', 'High', 'Low', 'Close', 'Volume', "Asset_name", "Date"], inplace=True)
     data1.replace([np.inf, -np.inf], np.nan, inplace=True)
     data1.dropna(inplace=True)
@@ -407,9 +413,9 @@ def backtest_all_coins(RUN):
     nr.fit(X_scaler)
     X, y = data1.iloc[:, :-1], data1.iloc[:, -1]
     Xs = nr.transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(Xs, y, test_size=0.3, stratify=y)  # , random_state=RUN['seed'])
+    X_train, X_test, y_train, y_test = train_test_split(Xs, y, test_size=0.3, stratify=y)  # , random_state=run_conf['seed'])
 
-    filenames = os.listdir(RUN['folder'])
+    filenames = os.listdir(run_conf['folder'])
     # print(f"{filenames=}")
     rets_list = []
 
@@ -418,7 +424,7 @@ def backtest_all_coins(RUN):
     for i in range(len(filenames)):
         try:
             print(f"{round((i / len(filenames)) * 1000) / 10}% of files analyzed")
-            data = pd.read_csv(f"{RUN['folder']}{filenames[i]}")
+            data = pd.read_csv(f"{run_conf['folder']}{filenames[i]}")
             data['Date'] = pd.to_datetime(data['Date'])
 
             start = data['Date'].iloc[0].strftime("%d-%m-%Y")
@@ -427,8 +433,8 @@ def backtest_all_coins(RUN):
             data = TecnicalAnalysis.find_patterns(data)
             data = TecnicalAnalysis.add_timely_data(data)
 
-            data = data[data['Date'] >= RUN['back_test_start']]
-            data = data[data['Date'] <= RUN['back_test_end']]
+            data = data[data['Date'] >= run_conf['back_test_start']]
+            data = data[data['Date'] <= run_conf['back_test_end']]
             if len(data.index) == 0:
                 continue
             
@@ -444,16 +450,16 @@ def backtest_all_coins(RUN):
             Xs = nr.transform(data_pred)
             model = NNModel(Xs.shape[1], 3)
             model.dummy_train(X_train, y_train)
-            model.load('model.keras')
+            model.load(run_conf['model_path'])
             labels = model.predict(Xs)
             data['label'] = labels
-            hist_nn, cap_nn, num_op_nn, min_drawdown_nn, max_gain_nn, g_ops_nn = calc_cum_ret_s1(data, RUN['stop_loss'],
-                                                                                                 RUN['commission fee'])
+            hist_nn, cap_nn, num_op_nn, min_drawdown_nn, max_gain_nn, g_ops_nn = calc_cum_ret_s1(data, run_conf['stop_loss'],
+                                                                                                 run_conf['commission fee'])
                         
             labels = model.dummy_predict(Xs)
             data['label'] = labels
-            hist_du, cap_du, num_op_du, min_drawdown_du, max_gain_du, g_ops_du = calc_cum_ret_s1(data, RUN['stop_loss'],
-                                                                                                 RUN['commission fee'])
+            hist_du, cap_du, num_op_du, min_drawdown_du, max_gain_du, g_ops_du = calc_cum_ret_s1(data, run_conf['stop_loss'],
+                                                                                                 run_conf['commission fee'])
             
             rets_list.append(
                 {'asset_name': data['Asset_name'].iloc[0], 'profit_nn': cap_nn, 'profit_dummy': cap_du,
@@ -465,23 +471,36 @@ def backtest_all_coins(RUN):
             traceback.print_exc(file=sys.stdout)
             print("-" * 60)
 
-    fw = RUN['f_window']
-    bw = RUN['b_window']
-
     res_df = pd.DataFrame(rets_list)
 
-    f_save = ""
-    for i in range(1, 20):
-        f_save = f'{RUN["reports"]}{start}_{end}_{bw}_{fw}_{RUN["suffix"]}_{i}.xlsx'
-        if os.path.isfile(f_save):
-            continue
-        else:
-            break
-
-    res_df.to_excel(f_save, float_format="%.3f")
+    f_save = f"{run_conf['reports']}{run_conf['run_id']}_{start}_{end}"
+    res_df.to_excel(f_save + ".xlsx", float_format="%.3f")
+    res_df.to_feather(f_save + ".feather")
 
     return res_df
 
 
 if __name__ == "__main__":
-    backtest_single_coin(run_conf, 'BTCUSDT.csv')
+    # CLI arguments
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--all', action='store_true', help='backtest all coins')
+    argparser.add_argument('--token', type=str, default='BTCUSDT.csv', help='single coin token to test')
+    argparser.add_argument('--config', type=str, help='JSON config file')
+    argparser.add_argument('--run_id', type=str, help='run id')
+    argparser.add_argument('--model', type=str, help='model file to use')
+    args = argparser.parse_args()
+
+    if args.config:
+        with open(args.config, 'r') as f:
+            run_conf = json.load(f)
+    else:
+        run_conf = RUN
+    if args.run_id:
+        run_conf['run_id'] = args.run_id
+        run_conf['model_path'] = f"{run_conf['models']}model_{run_conf['run_id']}.keras"
+    if args.model:
+        run_conf['model_path'] = args.model
+    if args.all:
+        backtest_all_coins(run_conf)
+    else:
+        backtest_single_coin(args.token, run_conf=run_conf)

@@ -3,8 +3,8 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, LeakyReLU, Input
 from keras.callbacks import ModelCheckpoint
-from sklearn.preprocessing import LabelEncoder
 from keras import utils
+from sklearn.preprocessing import LabelEncoder
 from sklearn.dummy import DummyClassifier
 
 

@@ -1,9 +1,10 @@
 # Worked for MacOS Python 3.11.3
 # Need `brew install ta-lib` for TA-Lib
 # See https://github.com/TA-Lib/ta-lib-python#dependencies for others.
+# Also for on MacOS `pip install tensorflow-macos tensorflow-metal` for GPU support.
 
 tensorflow<3
-keras<3
+keras
 scikit-learn
 pandas
 numpy
